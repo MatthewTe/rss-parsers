@@ -12,7 +12,7 @@ import os
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 sentry_sdk.init(
-    dsn="https://2b5f2eab91624f51a620406e6914e67a@o1148429.ingest.sentry.io/4505293364985856",
+    dsn=os.environ.get("SENTRY_DSN"),
     environment="development",
     traces_sample_rate=1.0
 )
