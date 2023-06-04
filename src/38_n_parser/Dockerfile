@@ -16,5 +16,3 @@ RUN pip install --upgrade pip && \
 WORKDIR /app
 
 CMD ["python", "ingest_articles.py"]
-
-

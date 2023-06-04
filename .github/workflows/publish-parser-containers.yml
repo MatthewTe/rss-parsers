@@ -8,6 +8,13 @@ jobs:
   publish_fp_parser:
     name: Push the FP rss feed parser docker container to the registry
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: 
+          - dockerfile: ./src/fp_parser
+            image: matthewtee/fp_parser
+          - dockerfile: ./src/38_n_parser
+            image: matthewtee/38_n_parser
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -22,11 +29,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: matthewtee/fp_parser:latest
+          images: ${{ matrix.image }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: ./src/fp_parser
+          context: ${{ matrix.dockerfile }}
           push: true
-          tags: matthewtee/fp_parser:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
