@@ -17,7 +17,7 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 
-sentry_sdk.set_tag("rss_feed", "foreign_policy")
+sentry_sdk.set_tag("rss_feed", "38_north")
 
 
 ssl_args = {
@@ -25,6 +25,7 @@ ssl_args = {
 }
 
 def parse_fp_rss_feed():
+
     engine_url = URL.create(
         drivername="mysql+mysqldb",
         username=os.environ.get("USERNAME"),
@@ -39,7 +40,7 @@ def parse_fp_rss_feed():
     session = Session()
 
     # Getting the rss feed url from the database:
-    rss_feed = session.execute(sa.text("SELECT * FROM rss_feed WHERE name = :name"), {"name": "foreign_policy_magazine"}).fetchone()
+    rss_feed = session.execute(sa.text("SELECT * FROM rss_feed WHERE name = :name"), {"name": "38_north"}).fetchone()
 
     if rss_feed:
         rss_feed_url = rss_feed.url
@@ -110,6 +111,6 @@ def parse_fp_rss_feed():
 
 if __name__ == "__main__":
     scheduler = BlockingScheduler()
-    scheduler.add_job(parse_fp_rss_feed, trigger="cron", hour=8, minute=30)
+    scheduler.add_job(parse_fp_rss_feed, trigger="cron", day_of_week=0, hour=0)
     print("Starting Scheduler...")
     scheduler.start()
