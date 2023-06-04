@@ -1,6 +1,10 @@
 services:
   fp_parser:
+    env_file:
+      - .env
     image: matthewtee/fp_parser:main
   
   38_n_parser:
+    env_file:
+      - .env
     image: matthewtee/38_n_parser:main
