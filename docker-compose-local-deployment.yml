@@ -1,0 +1,6 @@
+services:
+  fp_parser:
+    image: matthewtee/fp_parser:main
+  
+  38_n_parser:
+    image: matthewtee/38_n_parser:main
