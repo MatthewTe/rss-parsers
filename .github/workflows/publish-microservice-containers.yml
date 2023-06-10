@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include: 
-          - dockerfile: ./src/article_ingestor/Dockerfile.python
+        include:
+          - dockerfile: ./src/article_ingestor/Dockerfile.python 
             image: matthewtee/rss_article_ingestor
             tags: latest, python-3.11
           - dockerfile: ./src/article_scheduler/Dockerfile
