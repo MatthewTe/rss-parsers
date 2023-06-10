@@ -6,15 +6,19 @@ on:
 
 jobs:
   publish_fp_parser:
-    name: Push the FP rss feed parser docker container to the registry
+    name: Push microservice docker containers to the registry
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include: 
-          - dockerfile: ./src/fp_parser
-            image: matthewtee/fp_parser
-          - dockerfile: ./src/38_n_parser
-            image: matthewtee/38_n_parser
+          - dockerfile: ./src/article_ingestor/Dockerfile.python
+            image: matthewtee/rss_article_ingestor
+            tags: latest, python-3.11
+          - dockerfile: ./src/article_scheduler/Dockerfile
+            image: matthewtee/rss_article_scheduler
+          - dockerfile: ./src/snowflake/Dockerfile.python
+            image: matthewtee/rss_snowflake
+            tags: latest, python-3.11
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3

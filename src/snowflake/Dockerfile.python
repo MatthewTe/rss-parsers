@@ -1,0 +1,17 @@
+FROM python:3.11-slim-buster
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PYTHONUNBUFFERED=1
+RUN python3 -m venv  ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
+
+COPY requirements.txt . 
+
+RUN pip install --upgrade pip && \
+    apt-get update && \
+    apt-get install -y default-mysql-server default-libmysqlclient-dev gcc && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY ./snowflake_python.py /app/snowflake_python.py
+
+CMD ["python", "/app/snowflake_python.py"]

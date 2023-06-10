@@ -1,0 +1,43 @@
+services:
+
+  # rabbitmq:
+  #  image: rabbitmq:3.11-management
+  #  container_name: rabbitmq
+  #  environment:
+  #    - RABBITMQ_DEFAULT_USER=guest
+  #    - RABBITMQ_DEFAULT_PASS=quest
+  #  ports:
+  #    - 5672:5672
+  #    - 15672:15672
+  #  healthcheck:
+  #      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+  #      interval: 30s
+  #      timeout: 10s
+  #      retries: 5
+
+  article_scheduler:
+    build:
+      context: ./src/article_scheduler/
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    env_file:
+      - .env
+ 
+  snowflake:
+    build:
+      context: ./src/snowflake/
+      dockerfile: Dockerfile.python
+    ports:
+      - 81:80
+    env_file:
+      - .env
+
+  article_ingestor:
+    build:
+      context: ./src/article_ingestor/
+      dockerfile: Dockerfile.python
+    ports:
+      - 82:80
+    env_file:
+      - .env
