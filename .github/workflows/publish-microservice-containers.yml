@@ -14,8 +14,9 @@ jobs:
           - dockerfile: ./src/article_ingestor/Dockerfile.python 
             image: matthewtee/rss_article_ingestor
             tags: latest, python-3.11
-          - dockerfile: ./src/article_scheduler/Dockerfile
+          - dockerfile: ./src/article_scheduler/Dockerfile.python
             image: matthewtee/rss_article_scheduler
+            tags: latest, python-3.11
           - dockerfile: ./src/snowflake/Dockerfile.python
             image: matthewtee/rss_snowflake
             tags: latest, python-3.11
