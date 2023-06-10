@@ -13,13 +13,13 @@ jobs:
         include:
           - dockerfile: ./src/article_ingestor/Dockerfile.python 
             image: matthewtee/rss_article_ingestor
-            tags: latest
+            tags: [latest, python-3.11]
           - dockerfile: ./src/article_scheduler/Dockerfile.python
             image: matthewtee/rss_article_scheduler
-            tags: latest
+            tags: [latest, python-3.11]
           - dockerfile: ./src/snowflake/Dockerfile.python
             image: matthewtee/rss_snowflake
-            tags: latest
+            tags: [latest, python-3.11]
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -42,5 +42,5 @@ jobs:
           context: .
           file: $${{ matrix.dockerfile }}
           push: true
-          tags: $${{ matrix.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
