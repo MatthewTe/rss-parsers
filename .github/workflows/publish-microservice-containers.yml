@@ -14,15 +14,15 @@ jobs:
           - dockerfile: ./src/article_ingestor/Dockerfile.python
             context: ./src/article_ingestor/
             image: matthewtee/rss_article_ingestor
-            tags: python-3.11
+            tags: python-microservice
           - dockerfile: ./src/article_scheduler/Dockerfile.python
             context: ./src/article_scheduler/
             image: matthewtee/rss_article_scheduler
-            tags: python-3.11
+            tags: python-microservice
           - dockerfile: ./src/snowflake/Dockerfile.python
             context: ./src/snowflake/
             image: matthewtee/rss_snowflake
-            tags: python-3.11
+            tags: python-microservice
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
