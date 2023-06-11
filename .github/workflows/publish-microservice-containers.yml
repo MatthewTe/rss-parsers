@@ -11,15 +11,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - dockerfile: ./src/article_ingestor/Dockerfile.python 
+          - dockerfile: Dockerfile.python
+            context: ./src/article_ingestor/
             image: matthewtee/rss_article_ingestor
-            tags: [latest, python-3.11]
-          - dockerfile: ./src/article_scheduler/Dockerfile.python
+            tags: python-3.11
+          - dockerfile: Dockerfile.python
+            context: ./src/article_scheduler/
             image: matthewtee/rss_article_scheduler
-            tags: [latest, python-3.11]
-          - dockerfile: ./src/snowflake/Dockerfile.python
+            tags: python-3.11
+          - dockerfile: Dockerfile.python
+            context: ./src/snowflake/
             image: matthewtee/rss_snowflake
-            tags: [latest, python-3.11]
+            tags: python-3.11
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -39,8 +42,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: .
-          file: ${{ matrix.dockerfile }}
+          context: ${ matrix.context }
+          file: ${{ matrix.dockerfile }} 
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ matrix.tags }}
           labels: ${{ steps.meta.outputs.labels }}

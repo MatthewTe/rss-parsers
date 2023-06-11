@@ -18,7 +18,7 @@ services:
   article_scheduler:
     build:
       context: ./src/article_scheduler/
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.python
     ports:
       - 80:80
     env_file:
