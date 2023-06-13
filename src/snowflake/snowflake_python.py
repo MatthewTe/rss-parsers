@@ -48,12 +48,13 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     
     article_unique_query = sa.text("SELECT id FROM article WHERE url = :url")
     existing_article = session.execute(article_unique_query, {"url": article['url']}).fetchone()
-
+    print(existing_article)
     if existing_article is not None:
+        #ch.basic_publish(exchange="rss_feed", routing_key="rss.article.duplicate", body=json.dumps(article))
+        print(f"Article {article['title']} already exists in the database")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.duplicate", body=json.dumps(article))
-        print("Article already exists in the database")
     else:
-        print("Article is not in the database")
+        print(f"Article {article['title']} is not in the database")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.new", body=json.dumps(article))
 
     session.close()

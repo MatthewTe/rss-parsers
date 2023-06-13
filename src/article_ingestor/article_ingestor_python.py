@@ -54,9 +54,13 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
 
     inserted_article = session.execute(insert_query, article)
     rows_inserted = inserted_article.rowcount
+
     if rows_inserted == 1:
-        print(article['title'], "Inserted")
-    else: 
+        print(f"Inserted article {article['title']} into database")
+        article['title'] = article['title'].decode("utf-8")
+        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
+    else:
+        # Raise Error Handeling 
         pass
 
     session.commit()

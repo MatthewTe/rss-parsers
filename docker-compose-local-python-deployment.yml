@@ -23,7 +23,7 @@ services:
       - 80:80
     env_file:
       - .env
- 
+
   snowflake:
     build:
       context: ./src/snowflake/
@@ -39,5 +39,13 @@ services:
       dockerfile: Dockerfile.python
     ports:
       - 82:80
+    env_file:
+      - .env
+
+  logger:
+    build:
+      context: ./src/logger/
+      dockerfile: Dockerfile.python
+
     env_file:
       - .env
