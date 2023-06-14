@@ -15,3 +15,4 @@ SQLAlchemy==2.0.15
 typing_extensions==4.6.2
 urllib3==2.0.2
 wheel==0.40.0
+python-logging-rabbitmq==2.2.0

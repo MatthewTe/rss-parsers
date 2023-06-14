@@ -4,11 +4,52 @@ import pika
 import feedparser
 import datetime
 import json
+from pythonjsonlogger import jsonlogger
 import os 
 from time import mktime
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+
+import logging
+from python_logging_rabbitmq import RabbitMQHandler
+
+# Logging config:
+APP_NAME = "scheduler"
+
+class CustomJsonFormatter(jsonlogger.JsonFormatter):
+    def add_fields(self, log_record, record, message_dict):
+        super(CustomJsonFormatter, self).add_fields(log_record, record, message_dict)
+        if not log_record.get('timestamp'):
+            # this doesn't use record.created, so it is slightly off
+            now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            log_record['timestamp'] = now
+        if log_record.get('level'):
+            log_record['level'] = log_record['level'].upper()
+        else:
+            log_record['level'] = record.levelname
+
+
+logger = logging.getLogger(APP_NAME)
+logger.setLevel(logging.DEBUG)
+
+rabbit = RabbitMQHandler(
+	host=os.environ.get("BROKER_URL", "localhost"),
+	port=5672,
+    exchange="amq.topic",
+	username='guest',
+	password='guest',
+    formatter=CustomJsonFormatter(),
+	connection_params={
+		'virtual_host': '/',
+		'connection_attempts': 3,
+		'socket_timeout': 5000
+	},
+    fields={"source":f"{APP_NAME}-producer"},
+    fields_under_root=True
+)
+
+logger.addHandler(rabbit)
 
 jobstores = {
     "default": SQLAlchemyJobStore(url='sqlite:///jobs.sqlite')
@@ -57,6 +98,7 @@ def emit_rss_feed_articles(feed_urls: list[dict[int, str]]):
                 routing_key="rss.article.raw", 
                 body=json.dumps(article)
             )
+            logger.info("Scheduler emitted article from rss feed", extra={"url":article.link, "rss_feed":url})
 
     connection.close()
 
@@ -116,6 +158,7 @@ async def emit_mock_rss_data():
     
 
     for article in articles:
+        logger.debug("Emitted test article")
         channel.basic_publish(
             exchange="rss_feed", 
             routing_key="rss.article.raw", 
@@ -129,5 +172,5 @@ async def emit_mock_rss_data():
 @app.get("/manually_trigger")
 async def manually_trigger_feed_ingestion():
     scheduler.get_job(job_id="bulk_load_rss_feeds").modify(next_run_time=datetime.datetime.now())
-
+    logger.info("Manually triggering bulk rss feed function")
     return {"message": "Manually triggered rss feed ingestion task"}
