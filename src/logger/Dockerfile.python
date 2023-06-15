@@ -12,6 +12,6 @@ RUN pip install --upgrade pip && \
     apt-get install -y default-mysql-server default-libmysqlclient-dev gcc && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY ./logger_python.py /app/logger_python.py
+COPY ./logger_python/ /app/logger_python/
 
-CMD ["python", "/app/logger_python.py"]
+CMD ["python", "/app/logger_python/logger.py"]

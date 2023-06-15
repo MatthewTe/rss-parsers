@@ -12,6 +12,6 @@ RUN pip install --upgrade pip && \
     apt-get install -y default-mysql-server default-libmysqlclient-dev gcc && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY ./snowflake_python.py /app/snowflake_python.py
+COPY ./snowflake_python/ /app/snowflake_python/
 
-CMD ["python", "/app/snowflake_python.py"]
+CMD ["python", "/app/snowflake_python/snowflake.py"]

@@ -24,9 +24,23 @@ def main():
     channel.queue_bind(
         exchange="amq.topic",
         queue=db_queue_name, 
-        routing_key="scheduler.DEBUG"
+        routing_key="*.DEBUG"
     )
-
+    channel.queue_bind(
+        exchange="amq.topic",
+        queue=db_queue_name, 
+        routing_key="*.INFO"
+    )
+    channel.queue_bind(
+        exchange="amq.topic",
+        queue=db_queue_name, 
+        routing_key="*.WARNING"
+    )
+    channel.queue_bind(
+        exchange="amq.topic",
+        queue=db_queue_name, 
+        routing_key="*.ERROR"
+    )
     def consume_duplicate_rss_feed_logs(ch: BlockingChannel, method, prpoerties, body: bytes):
         "Writes all of the logs generated from the RSS feed to the database method"
         print(body)

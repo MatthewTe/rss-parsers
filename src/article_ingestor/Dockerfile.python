@@ -12,6 +12,6 @@ RUN pip install --upgrade pip && \
     apt-get install -y default-mysql-server default-libmysqlclient-dev gcc && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY ./article_ingestor_python.py /app/article_ingestor_python.py
+COPY ./article_ingestor_python/ /app/article_ingestor_python/
 
-CMD ["python", "/app/article_ingestor_python.py"]
+CMD ["python", "/app/article_ingestor_python/article_ingestor.py"]

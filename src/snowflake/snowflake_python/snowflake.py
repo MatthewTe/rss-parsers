@@ -1,4 +1,3 @@
-from pytz import utc
 import ast
 import json
 import os 
@@ -8,6 +7,9 @@ import sqlalchemy as sa
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
+
+# Broker logger import:
+from broker_logger import logger
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
@@ -29,7 +31,7 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     # Custom test logic:
     if article['url'] == "test_article":
         print(f"Test Article Recieved: {article}\n")
-        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.duplicate", body=json.dumps(article))
+        logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.new", body=json.dumps(article))
         return
 
@@ -48,18 +50,23 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     
     article_unique_query = sa.text("SELECT id FROM article WHERE url = :url")
     existing_article = session.execute(article_unique_query, {"url": article['url']}).fetchone()
-    print(existing_article)
+    
     if existing_article is not None:
-        #ch.basic_publish(exchange="rss_feed", routing_key="rss.article.duplicate", body=json.dumps(article))
-        print(f"Article {article['title']} already exists in the database")
-        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.duplicate", body=json.dumps(article))
+        logger.info("Article  already exists in the database. Article removed from que", extra={
+            "article": article['title'],
+            "rss_feed": article['rss_feed_id']
+        })
     else:
-        print(f"Article {article['title']} is not in the database")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.new", body=json.dumps(article))
+        logger.info("Article is not in the database. Article was re-added to the que w/ routing key new", extra={
+            "article": article['title'],
+            "rss_feed": article['rss_feed_id']
+        })
 
     session.close()
 
 channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
 
 print("Snowflake started consuming...")
+logger.info("Snowflake started consuming")
 channel.start_consuming()

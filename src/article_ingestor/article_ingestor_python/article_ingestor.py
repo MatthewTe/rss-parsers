@@ -1,4 +1,3 @@
-from pytz import utc
 import ast
 import os
 import json
@@ -9,6 +8,9 @@ import sqlalchemy as sa
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
+
+# Broker logger import:
+from broker_logger import logger
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
 
@@ -21,7 +23,7 @@ queue_name = result.method.queue
 
 channel.queue_bind(exchange="rss_feed", queue=queue_name, routing_key="rss.article.new")
 
-def callback(ch: BlockingChannel, method, properties, body: bytes):
+def ingest_articles(ch: BlockingChannel, method, properties, body: bytes):
     "Extracts all of the data for an article and writes it do the persistence layer"
     article = ast.literal_eval(body.decode("utf-8"))
 
@@ -31,6 +33,7 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     # Custom test logic:
     if article['url'] == "test_article":
         print(f"Test Article Recieved: {article}\n")
+        logger.debug("Test Article recieved")
         return
 
     engine_url = URL.create(
@@ -56,17 +59,23 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     rows_inserted = inserted_article.rowcount
 
     if rows_inserted == 1:
-        print(f"Inserted article {article['title']} into database")
+        logger.info(f"Successfully inserted article into the database", extra={
+            "article": article['title'],
+            "rss_feed": article["rss_feed_id"]
+        })
         article['title'] = article['title'].decode("utf-8")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
     else:
-        # Raise Error Handeling 
-        pass
+        logger.warning("Article was not inserted into the database", extra={
+            "article": article['title'],
+            "rss_feed": article['rss_feed_id']
+        })
 
     session.commit()
     session.close()
 
-channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
+channel.basic_consume(queue=queue_name, on_message_callback=ingest_articles, auto_ack=True)
 
+logger.info("Article Ingestor started consuming...")
 print("Article Ingestor started consuming...")
 channel.start_consuming()

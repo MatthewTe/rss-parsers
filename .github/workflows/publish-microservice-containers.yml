@@ -23,6 +23,9 @@ jobs:
             context: ./src/snowflake/
             image: matthewtee/rss_snowflake
             tags: python-microservice
+          - dockerfile: ./src/logger/Dockerfile.python
+            context: ./src/logger
+            image: python-microservice
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
