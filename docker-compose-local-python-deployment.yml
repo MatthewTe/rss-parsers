@@ -1,4 +1,52 @@
+#volumes:
+#  prometheus-data:
+#    driver: local
+#  grafana-data:
+#    driver: local
+#
+#networks:
+#  local_microservice_network:
+
+
 services:
+#  prometheus:
+#    image: prom/prometheus:latest
+#    container_name: prometheus
+#    ports:
+#      - 9090:9090
+#    command:
+#      - --config.file=/etc/prometheus/prometheus.yml
+#    volumes:
+#      - prometheus-data:/prometheus
+#      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+#    networks:
+#      - local_microservice_network
+#
+#  grafana:
+#    image: grafana/grafana:latest
+#    container_name: grafana
+#    ports:
+#      - 3000:3000
+#    volumes:
+#      - grafana-data:/var/lib/grafana
+#    networks:
+#      - local_microservice_network
+#
+#  cadvisor:
+#    image: gcr.io/cadvisor/cadvisor:v0.46.0
+#    container_name: cadvisor
+#    ports:
+#      - 8080:8080
+#    volumes:
+#      - /:/rootfs:ro
+#      - /var/run:/var/run:ro
+#      - /sys:/sys:ro
+#      - /var/lib/docker/:/var/lib/docker:ro
+#      - /dev/disk/:/dev/disk:ro
+#    devices: 
+#      - /dev/kmsg
+#    networks:
+#      - local_microservice_network
 
   # rabbitmq:
   #  image: rabbitmq:3.11-management
@@ -37,11 +85,23 @@ services:
     build:
       context: ./src/article_ingestor/
       dockerfile: Dockerfile.python
+    volumes:
+      - ./src/article_ingestor/article_ingestor_python/:/app/article_ingestor_python/
     ports:
       - 82:80
     env_file:
       - .env
 
+  storage_bucket_uploader:
+    build:
+      context: ./src/static_file_ingestor/
+      dockerfile: Dockerfile.python
+    volumes:
+      - ./src/static_file_ingestor/static_file_ingestor_python/:/app/static_file_ingestor_python/
+    env_file:
+      - .env
+    network_mode: host
+ 
   logger:
     build:
       context: ./src/logger/
@@ -49,3 +109,20 @@ services:
 
     env_file:
       - .env
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    ports:
+      - 9090:9090 
+      - 9000:9000
+    command: 'server /data --console-address ":9090"'
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    volumes:
+      - minio_static:/data
+
+volumes:
+  minio_static:
+

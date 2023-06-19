@@ -1,0 +1,11 @@
+services:
+  rabbitmq:
+    build: 
+      context: .
+      dockerfile: Dockerfile.rabbitmq
+    container_name: rabbitmq-broker
+    ports:
+      - 15672:15672
+      - 5672:5672
+      - 15675:15675
+    

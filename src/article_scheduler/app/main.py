@@ -56,7 +56,10 @@ async def emit_mock_rss_data():
     channel.exchange_declare(exchange="rss_feed", exchange_type="topic")
 
     for article in articles:
-        logger.debug("Emitted test article")
+        logger.debug("Debug test message log")
+        logger.info("Info test message log")
+        logger.warning("Warning test message log")
+        logger.error("Error test message log")
         channel.basic_publish(
             exchange="rss_feed", 
             routing_key="rss.article.raw", 
@@ -71,7 +74,7 @@ async def emit_mock_rss_data():
 async def manually_trigger_feed_ingestion():
 
     # All RSS Feeds that need to be parsed manually need to be added here:
-    scheduler.get_job(job_id="fp_rss_feed").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://foreignpolicy.com/feed/").modify(next_run_time=datetime.datetime.now())
 
     logger.info("Manually triggering bulk rss feed function")
  

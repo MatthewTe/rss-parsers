@@ -33,6 +33,9 @@ def ingest_articles(ch: BlockingChannel, method, properties, body: bytes):
     # Custom test logic:
     if article['url'] == "test_article":
         print(f"Test Article Recieved: {article}\n")
+
+        article['title'] = article['title'].decode("utf-8")
+        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
         logger.debug("Test Article recieved")
         return
 

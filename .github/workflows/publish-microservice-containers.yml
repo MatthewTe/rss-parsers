@@ -23,6 +23,9 @@ jobs:
           - dockerfile: ./src/logger/Dockerfile.python
             context: ./src/logger
             image: matthewtee/microservice_logger
+          - dockerfile: ./src/static_file_ingestor/Dockerfile.python
+            context: ./src/static_file_ingestor
+            image: matthewtee/microservice_static_file_ingestor
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3

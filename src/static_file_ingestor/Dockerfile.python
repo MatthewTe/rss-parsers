@@ -1,0 +1,16 @@
+FROM python:3.11-slim-buster
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV PYTHONUNBUFFERED=1
+RUN python3 -m venv  ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
+
+COPY requirements.txt . 
+
+RUN pip install --upgrade pip && \
+    apt-get update && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY ./static_file_ingestor_python/ /app/static_file_ingestor_python/
+
+CMD ["python", "/app/static_file_ingestor_python/static_file_ingestor.py"]
