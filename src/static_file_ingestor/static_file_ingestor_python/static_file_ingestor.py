@@ -106,7 +106,8 @@ def insert_article_storage_bucket_callback(ch: BlockingChannel, method, properti
             client = minio.Minio(
                 endpoint=MINIO_ENDPOINT,
                 access_key=MINIO_ACCESS_KEY,
-                secret_key=MINIO_PASSWORD
+                secret_key=MINIO_PASSWORD,
+                secure=False
             )
             
             RSS_FEED_ID: int = article['rss_feed_id']
@@ -127,8 +128,8 @@ def insert_article_storage_bucket_callback(ch: BlockingChannel, method, properti
 
             return
 
-        file_title: str = str.lower(article['title']).replace(" ", "_")
-        new_article_object_name: str = f"{DATE_POSTED}/{file_title}"
+        file_title: str = article['title'].decode("utf-8").lower().replace(" ", "_")
+        new_article_object_name: str = f"{DATE_POSTED}/{file_title}.html"
 
         try:
             # 4) Make request to url from article content to extract html file
@@ -154,7 +155,7 @@ def insert_article_storage_bucket_callback(ch: BlockingChannel, method, properti
                 object_name=new_article_object_name,
                 data=article_content,
                 length=article_content_size,
-                content_type="application/html",
+                content_type="text/html",
                 metadata={
                     "title": article['title'],
                     "rss_feed_id": article['rss_feed_id'],
