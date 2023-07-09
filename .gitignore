@@ -154,3 +154,5 @@ cython_debug/
  
 parser_env/
 *.sqlite
+
+/node_modules
