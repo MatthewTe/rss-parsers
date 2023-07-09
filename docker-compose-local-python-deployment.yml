@@ -69,6 +69,8 @@ services:
       dockerfile: Dockerfile.python
     ports:
       - 80:80
+    volumes:
+      - ./src/article_scheduler/app/:/app/
     env_file:
       - .env
 
@@ -76,6 +78,8 @@ services:
     build:
       context: ./src/snowflake/
       dockerfile: Dockerfile.python
+    volumes:
+      - ./src/snowflake/snowflake_python/:/app/snowflake_python/
     ports:
       - 81:80
     env_file:
@@ -106,6 +110,8 @@ services:
     build:
       context: ./src/logger/
       dockerfile: Dockerfile.python
+    volumes:
+      - ./src/logger/logger_python/:/app/logger_python/
 
     env_file:
       - .env

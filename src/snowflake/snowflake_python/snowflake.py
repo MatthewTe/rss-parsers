@@ -29,7 +29,7 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
     article = ast.literal_eval(body.decode("utf-8"))
 
     # Custom test logic:
-    if article['url'] == "test_article":
+    if article['rss_feed_id'] == 9999:
         print(f"Test Article Recieved: {article}\n")
         logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new")
         ch.basic_publish(exchange="rss_feed", routing_key="rss.article.new", body=json.dumps(article))

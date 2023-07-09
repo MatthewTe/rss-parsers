@@ -5,6 +5,7 @@ import feedparser
 import datetime
 import json
 import os 
+import uuid 
 
 # Logging imports:
 from app.broker_logger import logger
@@ -33,17 +34,17 @@ async def get_tasks():
 async def emit_mock_rss_data():
     articles = [
         {   
-            "rss_feed_id": 1,
+            "rss_feed_id": 9999,
             "date_extracted": datetime.datetime.now().date().isoformat(),
-            "title": "This is test article 1",
-            "url": "test_article",
+            "title": f"This is test article 1 - {str(uuid.uuid4())}",
+            "url": "https://www.google.com/",
             "date_posted": datetime.datetime.now().isoformat()
         },
         {   
-            "rss_feed_id": 2,
+            "rss_feed_id": 9999,
             "date_extracted": datetime.datetime.now().date().isoformat(),
-            "title": "This is test article 2",
-            "url": "test_article",
+            "title": f"This is test article 2 - {str(uuid.uuid4())}",
+            "url": "https://www.google.com/",
             "date_posted": datetime.datetime.now().date().isoformat()
         }
     ]

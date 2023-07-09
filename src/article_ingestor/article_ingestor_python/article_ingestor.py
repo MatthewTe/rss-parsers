@@ -31,7 +31,7 @@ def ingest_articles(ch: BlockingChannel, method, properties, body: bytes):
     article['title'] = article["title"].encode()
 
     # Custom test logic:
-    if article['url'] == "test_article":
+    if article['rss_feed_id'] == 9999:
         print(f"Test Article Recieved: {article}\n")
 
         article['title'] = article['title'].decode("utf-8")
