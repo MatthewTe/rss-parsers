@@ -1,3 +1,4 @@
+import './style.css';
 import { Message } from "paho-mqtt";
 import { Grid, GridApi, GridOptions, ModuleRegistry } from "@ag-grid-community/core";
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
@@ -31,7 +32,9 @@ const gridOptions: GridOptions = <GridOptions>{
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired");
     const logStreamDiv:HTMLElement = <HTMLElement>document.querySelector("#log-stream-grid")
-    new Grid(logStreamDiv, gridOptions)
+    const grid = new Grid(logStreamDiv, gridOptions)
+    logStreamDiv.classList.add('ag-theme-alpine-dark');
+
 })
 
 

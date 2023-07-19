@@ -1,10 +1,12 @@
 import ast
 import os
 import json
-import datetime
+import fastapi
+import uvicorn
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy as sa
+import threading
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
@@ -12,73 +14,98 @@ from pika.adapters.blocking_connection import BlockingChannel
 # Broker logger import:
 from broker_logger import logger
 
-connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
+app = fastapi.FastAPI()
 
-channel = connection.channel()
+@app.get("/status")
+async def get_status():
+    "Checking the status of the connection to the broker"
+    return {
+        "status": 200,
+        "microservice_name": "rss_article_database_ingestor"
+    }
 
-channel.exchange_declare("rss_feed", exchange_type="topic")
+def consume_messages():
+    def ingest_articles(ch: BlockingChannel, method, properties, body: bytes):
+        "Extracts all of the data for an article and writes it do the persistence layer"
+        article = ast.literal_eval(body.decode("utf-8"))
 
-result = channel.queue_declare("", exclusive=True)
-queue_name = result.method.queue
+        # Article de-seralization:
+        article['title'] = article["title"].encode()
 
-channel.queue_bind(exchange="rss_feed", queue=queue_name, routing_key="rss.article.new")
+        # Custom test logic:
+        if article['rss_feed_id'] == 9999:
+            print(f"Test Article Recieved: {article}\n")
 
-def ingest_articles(ch: BlockingChannel, method, properties, body: bytes):
-    "Extracts all of the data for an article and writes it do the persistence layer"
-    article = ast.literal_eval(body.decode("utf-8"))
+            article['title'] = article['title'].decode("utf-8")
+            ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
+            logger.debug("Test Article recieved")
+            return
 
-    # Article de-seralization:
-    article['title'] = article["title"].encode()
+        engine_url = URL.create(
+            drivername="mysql+mysqldb",
+            username=os.environ.get("USERNAME"),
+            password=os.environ.get("PASSWORD"),
+            host=os.environ.get("HOST"),
+            database=os.environ.get("DATABASE")
+        )
 
-    # Custom test logic:
-    if article['rss_feed_id'] == 9999:
-        print(f"Test Article Recieved: {article}\n")
+        engine = sa.create_engine(engine_url, connect_args={"ssl":{"ca":"/etc/ssl/certs/ca-certificates.crt"}})
 
-        article['title'] = article['title'].decode("utf-8")
-        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
-        logger.debug("Test Article recieved")
-        return
+        Session = sessionmaker(bind=engine)
+        session = Session()
+    
+        # Writes article data to the database:
+        insert_query = sa.text("""
+            INSERT INTO article (url, title, rss_feed_id, date_posted, date_extracted)
+            VALUES (:url, :title, :rss_feed_id, :date_posted, :date_extracted)
+        """)
 
-    engine_url = URL.create(
-        drivername="mysql+mysqldb",
-        username=os.environ.get("USERNAME"),
-        password=os.environ.get("PASSWORD"),
-        host=os.environ.get("HOST"),
-        database=os.environ.get("DATABASE")
-    )
+        inserted_article = session.execute(insert_query, article)
+        rows_inserted = inserted_article.rowcount
 
-    engine = sa.create_engine(engine_url, connect_args={"ssl":{"ca":"/etc/ssl/certs/ca-certificates.crt"}})
+        if rows_inserted == 1:
+            logger.info(f"Successfully inserted article into the database", extra={
+                "article": article['title'],
+                "rss_feed": article["rss_feed_id"]
+            })
+            article['title'] = article['title'].decode("utf-8")
+            ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
+        else:
+            logger.warning("Article was not inserted into the database", extra={
+                "article": article['title'],
+                "rss_feed": article['rss_feed_id']
+            })
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
- 
-    # Writes article data to the database:
-    insert_query = sa.text("""
-        INSERT INTO article (url, title, rss_feed_id, date_posted, date_extracted)
-        VALUES (:url, :title, :rss_feed_id, :date_posted, :date_extracted)
-    """)
+        session.commit()
+        session.close()
 
-    inserted_article = session.execute(insert_query, article)
-    rows_inserted = inserted_article.rowcount
+    try:
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
 
-    if rows_inserted == 1:
-        logger.info(f"Successfully inserted article into the database", extra={
-            "article": article['title'],
-            "rss_feed": article["rss_feed_id"]
+        channel = connection.channel()
+
+        channel.exchange_declare("rss_feed", exchange_type="topic")
+
+        result = channel.queue_declare("", exclusive=True)
+        queue_name = result.method.queue
+
+        channel.queue_bind(exchange="rss_feed", queue=queue_name, routing_key="rss.article.new")
+
+        channel.basic_consume(queue=queue_name, on_message_callback=ingest_articles, auto_ack=True)
+        channel.start_consuming()
+
+    except Exception as e:
+        logger.exception(f"Error in establishing a connection with the RabbitMQ Broker: {str(e)}", extra={
+            "exception": str(e)
         })
-        article['title'] = article['title'].decode("utf-8")
-        ch.basic_publish(exchange="rss_feed", routing_key="rss.article.inserted", body=json.dumps(article))
-    else:
-        logger.warning("Article was not inserted into the database", extra={
-            "article": article['title'],
-            "rss_feed": article['rss_feed_id']
-        })
 
-    session.commit()
-    session.close()
+def start_message_consumer():
+    consume_thread = threading.Thread(target=consume_messages)
+    consume_thread.start()
 
-channel.basic_consume(queue=queue_name, on_message_callback=ingest_articles, auto_ack=True)
-
-logger.info("Article Ingestor started consuming...")
-print("Article Ingestor started consuming...")
-channel.start_consuming()
+if __name__ == "__main__":
+    logger.info("Article Ingestor started consuming...")
+    print("Article Ingestor started consuming...")
+    start_message_consumer()
+    logger.info("Article Ingestor database connection I/O Thread started")
+    uvicorn.run(app, host="0.0.0.0", port=8000)

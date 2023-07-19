@@ -1,4 +1,4 @@
-name: Publishes the built Django image to Dockerhub
+name: Publishes all of the Microservice containers to docker up
 
 on:
   push:

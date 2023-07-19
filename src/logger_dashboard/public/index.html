@@ -7,13 +7,26 @@
     <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script> 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css"/> 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css"/>
+    
     <script src="bundle.js" ></script>
     <title>Rss Parser Logger</title>
 </head>
-<body>
-    <div class='main'>
-        <h1>Microservice Logger</h1>
-        <div id="log-stream-grid" style="height: 600px; width: 100%;" class="'ag-theme-alpine"></div>
+
+<body class="dark bg-black text-white">
+
+        <nav
+        class="relative flex w-full flex-wrap items-center justify-between bg-neutral-900 py-2 text-neutral-500 shadow-lg hover:text-neutral-700 focus:text-neutral-700 lg:py-4">
+        <div class="ml-5 flex w-[30%] items-center justify-between">
+            <div class="ml-2">
+                <a class="text-xl text-neutral-800 dark:text-neutral-200" href="index.html">Microservice Logger</a>
+            </div>
+             <div class="ml-2 mt-2">
+                <a class="text-ml text-neutral-800 dark:text-neutral-200 mt-10" href="service_handshake.html">Microservice Avalibility</a>
+            </div>
+        </nav>
+        
+    <div class='main' style="margin: 1rem;">
+        <div id="log-stream-grid" style="height: 600px; width: 100%;" class="'ag-theme-alpine-dark"></div>
     </div>
 </body>
 </html>

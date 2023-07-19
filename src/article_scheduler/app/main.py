@@ -30,6 +30,14 @@ async def get_tasks():
     
     return jobs
 
+@app.get("/status")
+async def get_status() -> dict[str, int, str, str]:
+    "Checking the status of the ingestion scheduler"
+    return {
+        "status": 200,
+        "microservice_name": "article_ingestion_scheduler"
+    }
+
 @app.get("/test_emit")
 async def emit_mock_rss_data():
     articles = [
