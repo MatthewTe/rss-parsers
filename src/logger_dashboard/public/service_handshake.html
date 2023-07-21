@@ -37,13 +37,34 @@
               <label for="storage_bucket_ingestor_service_url" class="text-white w-60">Storage Bucket Ingestor service url:</label>
               <input type="text" id="storage_bucket_ingestor_service_url" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
             </li>
-          </ul>
+        </ul>
 
-          <hr class="mt-5">
+        <hr class="mt-5">
 
           <!-- The grid system showing the status of each microservice -->
+        <div class="mt-5 mb-5 inline-flex">
+            <button id="test_microservice_btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center">Check Microservices</button>
+            <div id="timestamp_of_last_click" class="ml-5 mt-2">This would be a placeholder for a timestamp</div>
+        </div>
 
-
+        <div class="grid grid-cols-4 gap-4">
+            <div class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
+                <h1>Article Scheduler</h1>
+                <div>Last Run</div>
+            </div>
+            <div class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
+                <h1>Snowflake</h1>
+                <p class="mt-2"></p>
+            </div>
+            <div class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
+                <h1>Article Ingestor</h1>
+                <p class="mt-2"></p>
+            </div>
+            <div class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
+                <h1>Storage Bucket Static File Ingestor</h1>
+                <p class="mt-2"></p>
+            </div>
+        </div>
 
     </div>
 
