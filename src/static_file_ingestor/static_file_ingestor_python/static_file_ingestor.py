@@ -4,6 +4,7 @@ from typing import Literal
 import uvicorn
 import threading
 import fastapi
+from fastapi.middleware.cors import CORSMiddleware
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
@@ -14,8 +15,22 @@ from process_article_objects import upload_article_html_to_bucket
 MINIO_ENDPOINT: str = os.environ.get("MINIO_ENDPOINT", "localhost")
 MINIO_ACCESS_KEY: str = os.environ.get("MINIO_ACCESS_KEY", "admin")
 MINIO_PASSWORD: str = os.environ.get("MINIO_PASSWORD", "password")
+DEV_STATUS: str | None = os.environ.get("DEV_STATUS", None)
 
 app = fastapi.FastAPI()
+
+# Adding Middleware to allow for localhost CORS requests for development connection and debuggin:
+origins = [
+    "http://localhost:5500"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 @app.get("/status")
 async def get_status():

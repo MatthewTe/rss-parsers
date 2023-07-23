@@ -2,6 +2,7 @@ import ast
 import os
 import json
 import fastapi
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
@@ -15,6 +16,21 @@ from pika.adapters.blocking_connection import BlockingChannel
 from broker_logger import logger
 
 app = fastapi.FastAPI()
+
+DEV_STATUS: str | None = os.environ.get("DEV_STATUS", None)
+
+# Adding Middleware to allow for localhost CORS requests for development connection and debuggin:
+origins = [
+    "http://localhost:5500"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 @app.get("/status")
 async def get_status():

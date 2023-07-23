@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from pytz import utc
 import pika
-import feedparser
 import datetime
 import json
 import os 
@@ -14,7 +15,23 @@ from app.broker_logger import logger
 from app.scheduler_config import scheduler
 
 app = FastAPI()
- 
+
+DEV_STATUS: str | None = os.environ.get("DEV_STATUS", None)
+
+# Adding Middleware to allow for localhost CORS requests for development connection & debugging:
+origins = [
+    "http://localhost",
+    "http://localhost:5500",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 @app.get("/")
 async def get_tasks():
 
@@ -31,7 +48,7 @@ async def get_tasks():
     return jobs
 
 @app.get("/status")
-async def get_status() -> dict[str, int, str, str]:
+async def get_status():
     "Checking the status of the ingestion scheduler"
     return {
         "status": 200,
