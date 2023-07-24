@@ -4,8 +4,6 @@ import { Grid, GridApi, GridOptions, ModuleRegistry } from "@ag-grid-community/c
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { client } from "./mqtt_client";
 
-import { setUpMicroserviceStatusButtonEventListener } from './microservice_status_check';
-
 ModuleRegistry.registerModules([ClientSideRowModelModule])
 
 interface columnDefinition {
@@ -33,10 +31,7 @@ const gridOptions: GridOptions = <GridOptions>{
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired");
-    console.log("Starting to Add Event Listener")
-    setUpMicroserviceStatusButtonEventListener();
-    console.log("After Adding Event Listener")
-   const logStreamDiv:HTMLElement = <HTMLElement>document.querySelector("#log-stream-grid")
+    const logStreamDiv:HTMLElement = <HTMLElement>document.querySelector("#log-stream-grid")
     const grid = new Grid(logStreamDiv, gridOptions)
     logStreamDiv.classList.add('ag-theme-alpine-dark');
 })

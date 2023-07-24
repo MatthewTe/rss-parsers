@@ -2,7 +2,10 @@ const path = require('path');
 
 module.exports = {
     devtool: 'eval-source-map',
-    entry: './src/index.ts',
+    entry: {
+        index: './src/index.ts',
+        service_handshake: './src/microservice_status_check.ts' 
+    },
     module: {
         rules: [
             {
@@ -22,7 +25,7 @@ module.exports = {
     },
     output: {
         publicPath: 'public',
-        filename: 'bundle.js',
+        filename: '[name].bundle.js',
         path: path.resolve(__dirname, "public")
 
     }
