@@ -49,14 +49,14 @@ export function setUpMicroserviceStatusButtonEventListener() {
         // We assume that the ids in the status components are the same as the `microservice_name` field in the status response: 
         // Getting the parent div container of all of the status components: 
         const statusGrid = (<HTMLElement>document.getElementById("microservice_status_containers"))
+        const remainingStatusComponents = Array.from(statusGrid.querySelectorAll("div"))
 
         for (var i = 0; i < microserviceUrls.length; i++) {
             try {
                 const microserviceResponse = await getServiceStatus(microserviceUrls[i])
-                
                 // Trying to get a specific div component with the id name of the microservice:
-                const microserviceComponent = document.getElementById(microserviceResponse.microservice_name) 
-                console.log(microserviceComponent)
+                const microserviceComponent = <HTMLDivElement>document.getElementById(microserviceResponse.microservice_name) 
+                
                 if (microserviceComponent) {
                     microserviceComponent.classList.remove("border-gray-300", "border-red-300", "border-green-300")
 
@@ -69,15 +69,39 @@ export function setUpMicroserviceStatusButtonEventListener() {
                         microserviceComponent.classList.add("border-red-300")
                         console.log(`Added Green Component to ${microserviceComponent}`)
                     }
+                    
+                    // Adding the JSON request content to each of the microservice components:
+                    const existingJSONComponent= <HTMLPreElement>microserviceComponent.querySelector("pre")
+                    if (existingJSONComponent) {
+                        microserviceComponent.removeChild(existingJSONComponent)
+                    }
 
+                    const jsonString = JSON.stringify(microserviceResponse, null, 2)
+                    const jsonElement = document.createElement("pre");
+                    jsonElement.textContent = jsonString;
+                    jsonElement.classList.add("w-full", "h-full", "overflow-auto", "bg-gray-100", "m-4", "max-h-[200px]", "flex-1")
+                    microserviceComponent.appendChild(jsonElement);
+                
+                const index = remainingStatusComponents.indexOf(microserviceComponent)
+                if (index !== -1) {
+                    remainingStatusComponents.splice(index, 1)
+                }
                 // This grid component has been set so now we remove that component from the statusGrid: 
                 //const divToRemove = (<HTMLElement>statusGrid.querySelector(`#${microserviceResponse.microservice_name}`))
                 //statusGrid.removeChild(divToRemove)
                 }
             
             } catch (err) {
-                // console.error(err)
+                console.error(err)
             }
         }
-    })
+
+        // Setting all of the remaining components to 
+         remainingStatusComponents.forEach((microserviceComponent) => {
+            microserviceComponent.style.borderColor = 'red';
+            microserviceComponent.classList.add("border-red-300");
+            console.log(`Added Red Component to ${microserviceComponent}`);
+        });
+        
+   })
 }

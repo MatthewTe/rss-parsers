@@ -23,19 +23,19 @@
         <ul class="space-y-4">
             <li class="flex items-center">
               <label for="article_scheduler_url" class="text-white w-60">RSS Article Scheduler url:</label>
-              <input type="text" id="article_scheduler_url" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
+              <input type="text" id="article_scheduler_url" value="http://localhost/status" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
             </li>
             <li class="flex items-center">
               <label for="article_ingestor_service_url" class="text-white w-60">Article Ingestor url:</label>
-              <input type="text" id="article_ingestor_service_url" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
+              <input type="text" id="article_ingestor_service_url" value="http://localhost:82/status" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
             </li>
             <li class="flex items-center">
               <label for="snowflake_service_url" class="text-white w-60">Snowflake service url:</label>
-              <input type="text" id="snowflake_service_url" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
+              <input type="text" id="snowflake_service_url" value="http://localhost:81/status" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
             </li>
             <li class="flex items-center">
               <label for="storage_bucket_ingestor_service_url" class="text-white w-60">Storage Bucket Ingestor service url:</label>
-              <input type="text" id="storage_bucket_ingestor_service_url" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
+              <input type="text" id="storage_bucket_ingestor_service_url" value="http://localhost:83/status" class="flex-1 py-2 px-4 bg-white dark:bg-gray-800 text-black dark:text-white rounded-md border border-gray-300 dark:border-gray-600">
             </li>
         </ul>
 
@@ -47,10 +47,9 @@
             <div id="timestamp_of_last_click" class="ml-5 mt-2">This would be a placeholder for a timestamp</div>
         </div>
 
-        <div id="microservice_status_containers" class="grid grid-cols-4 gap-4">
+        <div id="microservice_status_containers" class="grid grid-cols-2 gap-4">
             <div id="article_ingestion_scheduler" class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
                 <h1>Article Scheduler</h1>
-                <div>Last Run</div>
             </div>
             <div id="snowflake" class="border-dashed border-2 border-gray-300 p-5 grid place-items-center">
                 <h1>Snowflake</h1>
