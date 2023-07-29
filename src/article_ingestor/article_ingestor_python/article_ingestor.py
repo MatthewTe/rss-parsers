@@ -8,7 +8,7 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
 import sqlalchemy as sa
 import threading
-
+import datetime
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
 
@@ -36,9 +36,19 @@ app.add_middleware(
 @app.get("/status")
 async def get_status():
     "Checking the status of the connection to the broker"
+    "Checking the status of the connection to the broker"
+    consumer_thread_status: bool = consumer_thread.is_alive()
+    if consumer_thread_status:
+        status = 200
+    else:
+        status = 404
+
     return {
-        "status": 200,
-        "microservice_name": "rss_article_database_ingestor"
+        "status": status,
+        "microservice_name": "rss_article_database_ingestor",
+        "timestamp": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+        "active_threads": [thread.name for thread in threading.enumerate()],
+        "amqp_listening_thread_alive": consumer_thread_status
     }
 
 def consume_messages():
@@ -116,13 +126,12 @@ def consume_messages():
             "exception": str(e)
         })
 
-def start_message_consumer():
-    consume_thread = threading.Thread(target=consume_messages)
-    consume_thread.start()
-
 if __name__ == "__main__":
     logger.info("Article Ingestor started consuming...")
     print("Article Ingestor started consuming...")
-    start_message_consumer()
+    
+    consumer_thread = threading.Thread(target=consume_messages)
+    consumer_thread.start()
+
     logger.info("Article Ingestor database connection I/O Thread started")
     uvicorn.run(app, host="0.0.0.0", port=8000)

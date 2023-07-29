@@ -50,10 +50,33 @@ async def get_tasks():
 @app.get("/status")
 async def get_status():
     "Checking the status of the ingestion scheduler"
+
     return {
         "status": 200,
-        "microservice_name": "article_ingestion_scheduler"
+        "microservice_name": "article_ingestion_scheduler",
+        "timestamp": datetime.datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+        "jobs": [
+            {
+                "id": job.id,
+                "func": job.func,
+                "name": job.name,
+                "kwargs": job.kwargs,
+                "next_runtime": job.next_run_time
+            } for job in scheduler.get_jobs()
+        ]
+ 
     }
+
+@app.get("/test_emit_logs")
+async def emit_mock_logs():
+    
+    logger.debug("Debug test message log")
+    logger.info("Info test message log")
+    logger.warning("Warning test message log")
+    logger.error("Error test message log")
+    
+
+    return {"Test logs emitted": True}
 
 @app.get("/test_emit")
 async def emit_mock_rss_data():

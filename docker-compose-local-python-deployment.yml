@@ -117,6 +117,7 @@ services:
       dockerfile: Dockerfile.python
     volumes:
       - ./src/logger/logger_python/:/app/logger_python/
+      - ./src/logger/logger_python/logs:/logs/
 
     env_file:
       - .env
