@@ -4,7 +4,6 @@ import requests
 import minio
 import os
 import io 
-import uuid
 from datetime import datetime
 from typing import Literal
 
@@ -94,7 +93,7 @@ def upload_article_html_to_bucket(
                 "date_posted": article['date_posted']
             }
         )
-
+        
         logger.info("Uplaoded article html content to the storage bucket", extra={
             "inserted_object_name": bucket_upload_result.object_name,
             "etag": bucket_upload_result.etag,
@@ -102,6 +101,7 @@ def upload_article_html_to_bucket(
             "bucket_name": BUCKET_NAME,
             "object_name": new_article_object_name
         })
+
 
     except Exception as e:
         logger.exception(f"Error in uploading article html content to storage bucket {str(e)}", extra={

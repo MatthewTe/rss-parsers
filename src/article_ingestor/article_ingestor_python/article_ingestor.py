@@ -83,8 +83,8 @@ def consume_messages():
     
         # Writes article data to the database:
         insert_query = sa.text("""
-            INSERT INTO article (url, title, rss_feed_id, date_posted, date_extracted)
-            VALUES (:url, :title, :rss_feed_id, :date_posted, :date_extracted)
+            INSERT INTO article (url, title, rss_feed_id, date_posted, date_extracted, in_storage_bucket)
+            VALUES (:url, :title, :rss_feed_id, :date_posted, :date_extracted, false)
         """)
 
         inserted_article = session.execute(insert_query, article)

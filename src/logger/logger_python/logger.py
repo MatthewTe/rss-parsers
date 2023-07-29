@@ -65,7 +65,7 @@ def main():
         # print(body)
 
         log_data: dict = json.loads(body)
-
+        print(log_data)
         log_message: str | None = log_data.pop('message', None)
         level_str = log_data.pop('level', 'INFO')
         log_level = getattr(logging, level_str.upper(), logging.INFO) 
@@ -73,7 +73,6 @@ def main():
         record = logging.makeLogRecord({"msg": log_message, **log_data})
         
         record.levelno = log_level
-
         logger.handle(record)
    
     channel.basic_consume(queue=db_queue_name, on_message_callback=consume_duplicate_rss_feed_logs, auto_ack=True)
