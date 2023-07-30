@@ -66,12 +66,18 @@ def upload_article_html_to_bucket(
         article_response.raise_for_status()
 
     except requests.exceptions.HTTPError as e:
-        logger.exception(f"Connection error in making requests to the RSS feed url: {str(e)}", extra={
-            "exception": str(e),
-            "status_code": article_response.status_code,
-            "request_error": e.response.text
-        })
-        return 404
+        ### 38 North requries https auth or something that makes my requests throw a 403 status even though I get the correct content
+        ### TODO: Find out what is causing this and remove this specific conditional to ignore the 403 Forbiden response:
+        if "https://www.38north.org" in article['url']:
+            pass
+        else: 
+            logger.exception(f"Connection error in making requests to the RSS feed url: {str(e)}", extra={
+                "exception": str(e),
+                "status_code": article_response.status_code,
+                "request_error": e.response.text
+            })
+
+            return 404
 
     try:
 
