@@ -60,7 +60,7 @@ async def get_status():
     }
 
 @app.get("/trigger_outstanding_article_bucket_ingestion")
-async def perform_database_static_file_ingestion():
+async def perform_database_static_file_ingestion(max_articles: int | None = None):
     """When this request is triggered it pulls down all of the articles from the database that have
     not been ingested into the static storage bucket and inserts these articles into the message broker
     queue so that these articles are ingested into the storage bucket
@@ -76,15 +76,31 @@ async def perform_database_static_file_ingestion():
 
     engine = sa.create_engine(engine_url, connect_args={"ssl":{"ca":"/etc/ssl/certs/ca-certificates.crt"}})
 
-    get_articles_not_in_bucket_query = sa.text(
-        """
-        SELECT url, title, rss_feed_id, date_posted, date_extracted
-        FROM article
-        WHERE in_storage_bucket = false; 
-        """)
+    if max_articles:
+        get_articles_not_in_bucket_query = sa.text(
+            """
+            SELECT url, title, rss_feed_id, date_posted, date_extracted
+            FROM article
+            WHERE in_storage_bucket = false
+            LIMIT :max_articles; 
+            """)
+        with engine.connect() as conn, conn.begin():
+            articles_not_in_bucket_df = pd.read_sql_query(
+                get_articles_not_in_bucket_query, 
+                con=conn,
+                params={"max_articles":max_articles}
+            )
 
-    with engine.connect() as conn, conn.begin():
-        articles_not_in_bucket_df = pd.read_sql_query(get_articles_not_in_bucket_query, con=conn)
+    else:
+        get_articles_not_in_bucket_query = sa.text(
+            """
+            SELECT url, title, rss_feed_id, date_posted, date_extracted
+            FROM article
+            WHERE in_storage_bucket = false; 
+            """)
+        with engine.connect() as conn, conn.begin():
+            articles_not_in_bucket_df = pd.read_sql_query(get_articles_not_in_bucket_query, con=conn)
+
 
     if not articles_not_in_bucket_df.empty:
         logger.info(f"Queried all articles that have not been uploaded to the storage bucket", extra={
@@ -141,7 +157,7 @@ async def perform_database_static_file_ingestion():
                 routing_key="rss.article.inserted", 
                 body=json.dumps(article, default=str)
             )
-
+            
             articles_ingested.append(article)
 
             logger.info("Added outstanding article to the storage bucket ingestor article que", extra={
@@ -158,6 +174,7 @@ async def perform_database_static_file_ingestion():
 
     # Calculating information about the ingestion:
     ingested_info: dict = {
+        "limit_on_articles_provided":max_articles,
         "articles_recived_from_db": len(articles_to_ingest),
         "articles_inserted_into_que": len(articles_ingested),
         "articles_not_ingested": articles_not_ingested,
