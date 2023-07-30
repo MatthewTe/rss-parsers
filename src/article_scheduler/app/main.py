@@ -123,6 +123,7 @@ async def emit_mock_rss_data():
 async def manually_trigger_feed_ingestion():
 
     # All RSS Feeds that need to be parsed manually need to be added here:
+    scheduler.get_job(job_id="https://www.38north.org/feed/").modify(next_run_time=datetime.datetime.now())
     scheduler.get_job(job_id="https://foreignpolicy.com/feed/").modify(next_run_time=datetime.datetime.now())
 
     logger.info("Manually triggering bulk rss feed function")

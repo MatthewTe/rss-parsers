@@ -1,12 +1,20 @@
 import sqlalchemy as  sa
 
+# Currently edit this for all the supported feeds:
 rss_feeds = [
     {
         "pk": 1,
         "url": "https://foreignpolicy.com/feed/",
         "etag": None,
         "last_updated_date": None
+    },
+    {
+        "pk": 2,
+        "url": "https://www.38north.org/feed/",
+        "etag": None,
+        "last_updated_date": None
     }
+
 ]
 
 local_sqlite_engine =  sa.create_engine("sqlite:///local.sqlite")
