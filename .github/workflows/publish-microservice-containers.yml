@@ -3,6 +3,11 @@ name: Publishes all of the Microservice containers to docker up
 on:
   push:
     branches: [ main ]
+  pull_request:
+    types:
+      - closed
+    branches:
+      - dev
 
 jobs:
   publish_fp_parser:
