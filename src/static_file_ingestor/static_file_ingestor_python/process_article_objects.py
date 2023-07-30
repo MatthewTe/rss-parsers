@@ -1,8 +1,6 @@
-import ast
-import json
 import requests
 import minio
-import os
+import time
 import io 
 from datetime import datetime
 from typing import Literal
@@ -63,6 +61,7 @@ def upload_article_html_to_bucket(
 
     try:
         # 4) Make request to url from article content to extract html file
+        time.sleep(0.5)
         article_response: requests.Response = requests.get(article['url'])
         article_response.raise_for_status()
 

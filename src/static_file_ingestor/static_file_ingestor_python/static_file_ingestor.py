@@ -10,6 +10,9 @@ import fastapi
 import datetime
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd 
+import uuid
+import time
+import json
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
@@ -59,8 +62,8 @@ async def get_status():
 @app.get("/trigger_outstanding_article_bucket_ingestion")
 async def perform_database_static_file_ingestion():
     """When this request is triggered it pulls down all of the articles from the database that have
-    not been ingested into the static storage bucket and uploads them to the storage bucket and updates
-    their status in the database 
+    not been ingested into the static storage bucket and inserts these articles into the message broker
+    queue so that these articles are ingested into the storage bucket
     """
     engine_url = URL.create(
         drivername="mysql+mysqldb",
@@ -75,7 +78,7 @@ async def perform_database_static_file_ingestion():
 
     get_articles_not_in_bucket_query = sa.text(
         """
-        SELECT url, title, rss_feed_id, date_posted, date_extracted, in_storage_bucket 
+        SELECT url, title, rss_feed_id, date_posted, date_extracted
         FROM article
         WHERE in_storage_bucket = false; 
         """)
@@ -87,6 +90,10 @@ async def perform_database_static_file_ingestion():
         logger.info(f"Queried all articles that have not been uploaded to the storage bucket", extra={
             "number_of_articles": len(articles_not_in_bucket_df) 
         })
+
+        #articles_not_in_bucket_df["date_posted"] = articles_not_in_bucket_df['date_posted'].dt.strftime("%Y-%m-%d")
+        #articles_not_in_bucket_df["date_extracted"] = articles_not_in_bucket_df['date_extracted'].dt.strftime("%Y-%m-%d")
+
     else:
         logger.warning("Outstanding article storage bucket update function was triggered but no outstanding articles were found", extra={
         })
@@ -94,7 +101,70 @@ async def perform_database_static_file_ingestion():
         return {"message":"No articles found that we not in the storage bucket"}
 
     # Converting article df into a list of dictionaries that mirror the schema of a recieved article from the broker:
-    return articles_not_in_bucket_df.to_dict(orient="records")
+    articles_to_ingest: list[
+        dict[
+            "url": str, 
+            "title":str, 
+            "rss_feed_id":int, 
+            "date_posted":str,
+            "date_extracted":str
+        ]]  = articles_not_in_bucket_df.to_dict(orient="records")
+    
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
+    channel = connection.channel()
+    channel.exchange_declare("rss_feed", exchange_type="topic")
+
+    articles_ingested: list[
+        dict[
+            "url": str, 
+            "title":str, 
+            "rss_feed_id":int, 
+            "date_posted":str,
+            "date_extracted":str
+        ]] = []
+    
+    articles_not_ingested: list[
+        dict[
+            "url": str, 
+            "title":str, 
+            "rss_feed_id":int, 
+            "date_posted":str,
+            "date_extracted":str
+        ]] = []
+
+
+    for article in articles_to_ingest:
+
+        try:
+            channel.basic_publish(
+                exchange="rss_feed", 
+                routing_key="rss.article.inserted", 
+                body=json.dumps(article, default=str)
+            )
+
+            articles_ingested.append(article)
+
+            logger.info("Added outstanding article to the storage bucket ingestor article que", extra={
+                "title":article['title']
+            })
+
+        except Exception as e:
+            logger.exception("Error in adding outstanding articles to storage bucket ingestor article que", extra={
+                "title":article['title'],
+                "exception": str(e)
+            })
+
+            articles_not_ingested.append(article)
+
+    # Calculating information about the ingestion:
+    ingested_info: dict = {
+        "articles_recived_from_db": len(articles_to_ingest),
+        "articles_inserted_into_que": len(articles_ingested),
+        "articles_not_ingested": articles_not_ingested,
+        "articles_ingested": articles_ingested
+    }
+
+    return ingested_info 
 
 
 def consume_message():
@@ -176,7 +246,7 @@ def consume_message():
         if upload_status == 200:
            channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
-            channel.basic_nack(delivery_tag=method.delivery_tag)
+           channel.basic_ack(delivery_tag=method.delivery_tag)
     
     try:
         connection = pika.BlockingConnection(
