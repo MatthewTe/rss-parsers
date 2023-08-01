@@ -157,3 +157,5 @@ parser_env/
 *.sqlite
 
 *node_modules/
+
+data/
