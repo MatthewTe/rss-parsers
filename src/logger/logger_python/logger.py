@@ -8,6 +8,7 @@ import sqlalchemy as sa
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from custom_json_logger import CustomJsonFormatter 
+from pythonjsonlogger import jsonlogger
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
@@ -62,17 +63,20 @@ def main():
     )
     def consume_duplicate_rss_feed_logs(ch: BlockingChannel, method, prpoerties, body: bytes):
         "Writes all of the logs generated from the RSS feed to the database method"
-        # print(body)
-
         log_data: dict = json.loads(body)
-        print(log_data)
-        log_message: str | None = log_data.pop('message', None)
-        level_str = log_data.pop('level', 'INFO')
-        log_level = getattr(logging, level_str.upper(), logging.INFO) 
-        
-        record = logging.makeLogRecord({"msg": log_message, **log_data})
-        
-        record.levelno = log_level
+
+        log_level_mapping = {
+            "DEBUG": 10,
+            "INFO": 20,
+            "WARNING": 30,
+            "ERROR": 40,
+            "CRITICAL": 50
+        }
+
+        log_data['levelno'] = log_level_mapping[log_data["level"]]
+        log_data['msg'] = log_data['message']
+
+        record = logging.makeLogRecord(log_data)
         logger.handle(record)
    
     channel.basic_consume(queue=db_queue_name, on_message_callback=consume_duplicate_rss_feed_logs, auto_ack=True)

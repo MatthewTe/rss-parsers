@@ -70,11 +70,38 @@ async def get_status():
 @app.get("/test_emit_logs")
 async def emit_mock_logs():
     
-    logger.debug("Debug test message log")
-    logger.info("Info test message log")
-    logger.warning("Warning test message log")
-    logger.error("Error test message log")
-    
+    logger.debug("Debug test message log", extra={
+        "timestamp": datetime.datetime.now(), 
+        "additional_info":"this is a debug message",
+        "test_variable":1
+    })
+
+    logger.info("Info test message log", extra={
+        "timestamp": datetime.datetime.now(),
+        "additional_info":"This is an info message",
+        "test_variable":10
+    })
+
+    logger.warning("Warning test message log", extra={
+        "timestamp": datetime.datetime.now(),
+        "additional_info":"This is a warning message",
+        "test_variable":20
+    })
+
+    logger.error("Error test message log", extra={
+        "timestamp":datetime.datetime.now(),
+        "additional_info":"This is an error",
+        "test_variable":30
+    })
+
+    try:
+        raise Exception("This the generic exception thrown for testing")
+    except:
+        logger.exception("This is an example exception", exc_info=True, extra={
+            "timestamp":datetime.datetime.now(),
+            "additional_info":"This is an exception",
+            "test_variable":50
+        })
 
     return {"Test logs emitted": True}
 

@@ -48,20 +48,20 @@ services:
 #    networks:
 #      - local_microservice_network
 
-  # rabbitmq:
-  #  image: rabbitmq:3.11-management
-  #  container_name: rabbitmq
-  #  environment:
-  #    - RABBITMQ_DEFAULT_USER=guest
-  #    - RABBITMQ_DEFAULT_PASS=quest
-  #  ports:
-  #    - 5672:5672
-  #    - 15672:15672
-  #  healthcheck:
-  #      test: ["CMD", "curl", "-f", "http://localhost:15672"]
-  #      interval: 30s
-  #      timeout: 10s
-  #      retries: 5
+  mysql:
+    container_name: dev_mysql
+    restart: always
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password' 
+      MYSQL_USER: 'username'
+      MYSQL_PASS: 'password'
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./configs/schema.sql:/docker-entrypoint-initdb.d/1.sql
+      - ./configs/data.sql:/docker-entrypoint-initdb.d/2.sql
+    ports:
+      - "3306:3306"
 
   article_scheduler:
     build:
