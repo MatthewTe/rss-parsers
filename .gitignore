@@ -159,3 +159,5 @@ parser_env/
 *node_modules/
 
 data/
+
+*grafana

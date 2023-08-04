@@ -6,47 +6,41 @@
 #
 networks:
   local_microservice_network:
+  loki:
 
 
 services:
-#  prometheus:
-#    image: prom/prometheus:latest
-#    container_name: prometheus
-#    ports:
-#      - 9090:9090
-#    command:
-#      - --config.file=/etc/prometheus/prometheus.yml
-#    volumes:
-#      - prometheus-data:/prometheus
-#      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-#    networks:
-#      - local_microservice_network
-#
-#  grafana:
-#    image: grafana/grafana:latest
-#    container_name: grafana
-#    ports:
-#      - 3000:3000
-#    volumes:
-#      - grafana-data:/var/lib/grafana
-#    networks:
-#      - local_microservice_network
-#
-#  cadvisor:
-#    image: gcr.io/cadvisor/cadvisor:v0.46.0
-#    container_name: cadvisor
-#    ports:
-#      - 8080:8080
-#    volumes:
-#      - /:/rootfs:ro
-#      - /var/run:/var/run:ro
-#      - /sys:/sys:ro
-#      - /var/lib/docker/:/var/lib/docker:ro
-#      - /dev/disk/:/dev/disk:ro
-#    devices: 
-#      - /dev/kmsg
-#    networks:
-#      - local_microservice_network
+
+  # Logging system - promtail push to locally deployed grafana: 
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    volumes:
+      - ./src/loki_stack/loki:/etc/loki
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/loki-dev-config.yml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./src/logger/logger_python/logs:/var/log
+      - ./src/loki_stack/promtail:/etc/promtail
+    command: -config.file=/etc/promtail/promtail-dev-config.yml
+    networks:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    user: "80" 
+    volumes:
+      - ./src/loki_stack/grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - loki
 
   mysql:
     container_name: dev_mysql
