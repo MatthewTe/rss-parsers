@@ -27,11 +27,11 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    user: "80" 
     volumes:
       - ./src/logger/loki_stack/grafana:/var/lib/grafana
     ports:
       - 3000:3000
+    user: "1000"
     networks:
       - loki
 
