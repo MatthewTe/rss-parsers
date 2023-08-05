@@ -16,7 +16,7 @@ services:
     image: grafana/loki:latest
     container_name: loki
     volumes:
-      - ./src/loki_stack/loki:/etc/loki
+      - ./src/logger/loki_stack/loki:/etc/loki
     ports:
       - 3100:3100
     command: -config.file=/etc/loki/loki-dev-config.yml
@@ -27,7 +27,7 @@ services:
     image: grafana/promtail:latest
     volumes:
       - ./src/logger/logger_python/logs:/var/log
-      - ./src/loki_stack/promtail:/etc/promtail
+      - ./src/logger/loki_stack/promtail:/etc/promtail
     command: -config.file=/etc/promtail/promtail-dev-config.yml
     networks:
       - loki
@@ -36,7 +36,7 @@ services:
     image: grafana/grafana:latest
     user: "80" 
     volumes:
-      - ./src/loki_stack/grafana:/var/lib/grafana
+      - ./src/logger/loki_stack/grafana:/var/lib/grafana
     ports:
       - 3000:3000
     networks:

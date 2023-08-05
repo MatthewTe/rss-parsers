@@ -2,6 +2,21 @@ import logging
 from typing import Any, Dict
 from pythonjsonlogger import jsonlogger
 from collections import OrderedDict
+from logging import handlers 
+import os 
+
+class ServiceBasedTimedRotatingFileHandler(handlers.TimedRotatingFileHandler):
+    def __init__(self, filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, service: str=None):
+        self.service = service
+        self.filename = filename
+        self.generate_filename()
+        super().__init__(self.filename, when, interval, backupCount, encoding, delay, utc)
+
+    def generate_filename(self):
+        if self.service:
+            self.filename = os.path.join('logs', self.service, f'{self.filename}.log')
+        else:
+            self.filename = os.path.join('logs', 'default', f'{self.filename}.log')
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
