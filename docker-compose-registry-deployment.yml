@@ -1,6 +1,6 @@
 networks:
   local_microservice_network:
-
+  loki:
 
 services:
 
