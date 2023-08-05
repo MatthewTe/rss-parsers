@@ -7,8 +7,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy as sa
 import logging
 from logging.handlers import TimedRotatingFileHandler
-from custom_json_logger import CustomJsonFormatter 
-from pythonjsonlogger import jsonlogger
+from custom_json_logger import CustomJsonFormatter, ServiceBasedTimedRotatingFileHandler 
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
