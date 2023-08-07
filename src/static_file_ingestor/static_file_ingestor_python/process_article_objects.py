@@ -1,11 +1,21 @@
 import requests
 import minio
 import time
+import random
 import io 
 from datetime import datetime
 from typing import Literal
 
 from static_file_ingestor_logger import logger
+    
+user_agents = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/65.0.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/16.16299",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.192 Safari/537.36",
+]
+
 
 def upload_article_html_to_bucket(
     minio_endpoint: str,
@@ -60,9 +70,20 @@ def upload_article_html_to_bucket(
     new_article_object_name: str = f"{DATE_POSTED}/{file_title}.html"
 
     try:
+
         # 4) Make request to url from article content to extract html file
         time.sleep(0.5)
-        article_response: requests.Response = requests.get(article['url'])
+
+        random_user_agent: str = random.choice(user_agents)
+        request_headers: dict[str, str] = {
+            "User-Agent": random_user_agent
+        }
+
+        article_response: requests.Response = requests.get(
+            url=article['url'],
+            headers=request_headers
+        )
+
         article_response.raise_for_status()
 
     except requests.exceptions.HTTPError as e:

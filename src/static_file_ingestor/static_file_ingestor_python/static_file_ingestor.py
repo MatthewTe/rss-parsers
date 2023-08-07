@@ -8,17 +8,17 @@ import uvicorn
 import threading
 import fastapi
 import datetime
+import requests
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd 
-import uuid
-import time
+import random
 import json
 
 import pika
 from pika.adapters.blocking_connection import BlockingChannel
 
 from static_file_ingestor_logger import logger
-from process_article_objects import upload_article_html_to_bucket 
+from process_article_objects import upload_article_html_to_bucket, user_agents 
 
 MINIO_ENDPOINT: str = os.environ.get("MINIO_ENDPOINT", "localhost")
 MINIO_ACCESS_KEY: str = os.environ.get("MINIO_ACCESS_KEY", "admin")
@@ -99,6 +99,7 @@ async def perform_database_static_file_ingestion(max_articles: int | None = None
             WHERE in_storage_bucket = false; 
             """)
         with engine.connect() as conn, conn.begin():
+
             articles_not_in_bucket_df = pd.read_sql_query(get_articles_not_in_bucket_query, con=conn)
 
 
@@ -183,6 +184,34 @@ async def perform_database_static_file_ingestion(max_articles: int | None = None
 
     return ingested_info 
 
+@app.get("/test_request_logic")
+async def test_rss_feed_article_ingestion(url: str):
+    "Function allows a user to make a http request to the provided url in order to debug request issues"
+    test_response_content = {"url_provided_for_testing": url}
+    
+    random_user_agent: str = random.choice(user_agents)
+    request_headers: dict[str, str] = {
+        "User-Agent": random_user_agent
+    }
+    
+    test_response_content['input_headers'] = request_headers
+
+    response = requests.get(url, headers=request_headers)
+
+    try:
+        response.raise_for_status()
+        test_response_content['status_code'] = response.status_code
+        test_response_content['content'] = response.content
+        test_response_content['response_headers'] = response.headers
+    
+    except Exception as e:
+        test_response_content['status_code'] = response.status_code
+        test_response_content['content'] = response.content
+        test_response_content['response_headers'] = response.headers
+        test_response_content['request_error'] = str(e)
+
+    return test_response_content
+
 
 def consume_message():
 
@@ -244,6 +273,9 @@ def consume_message():
                 """)
 
                 updated_article = session.execute(update_query, {"title":article['title']})
+                session.commit()
+                session.close()
+
                 rows_inserted = updated_article.rowcount
 
                 if rows_inserted == 1:
@@ -257,8 +289,6 @@ def consume_message():
                         "rss_feed": article['rss_feed_id']
                     })
 
-                session.commit()
-                session.close()
 
         if upload_status == 200:
            channel.basic_ack(delivery_tag=method.delivery_tag)
