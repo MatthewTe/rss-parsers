@@ -244,6 +244,9 @@ def consume_message():
                 """)
 
                 updated_article = session.execute(update_query, {"title":article['title']})
+                session.commit()
+                session.close()
+
                 rows_inserted = updated_article.rowcount
 
                 if rows_inserted == 1:
@@ -257,8 +260,6 @@ def consume_message():
                         "rss_feed": article['rss_feed_id']
                     })
 
-                session.commit()
-                session.close()
 
         if upload_status == 200:
            channel.basic_ack(delivery_tag=method.delivery_tag)

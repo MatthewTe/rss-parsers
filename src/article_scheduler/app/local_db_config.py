@@ -13,7 +13,19 @@ rss_feeds = [
         "url": "https://www.38north.org/feed/",
         "etag": None,
         "last_updated_date": None
-    }
+    },
+    {
+        "pk":3,
+        "url":"https://www.reutersagency.com/feed/?best-regions=asia&post_type=best",
+        "etag": None,
+        "last_updated_date": None
+    },
+    {
+        "pk":4,
+        "url":"https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best",
+        "etag": None,
+        "last_updated_date": None
+    },
 
 ]
 
