@@ -7,6 +7,9 @@ import datetime
 import json
 import os 
 import uuid 
+from time import mktime
+import feedparser
+import pydantic
 
 # Logging imports:
 from app.broker_logger import logger
@@ -145,6 +148,68 @@ async def emit_mock_rss_data():
     connection.close()
 
     return {"test_data_emitted": articles}
+
+
+class RssFeed(pydantic.BaseModel):
+    pk: int 
+    url: str
+    etag: str | None
+    last_updated: str | None
+
+
+@app.post("/test_parser_format/")
+async def test_rss_feed_parser(rss_feed: RssFeed):
+    "Ingests a POST request of an rss feed url to test the rss feed and make sure that it follows the correct schema"
+    feed_url = rss_feed.url
+    etag = rss_feed.etag
+    last_updated_date = rss_feed.last_updated
+    feed_pk = rss_feed.pk
+
+    # Constructing response:
+    response = {"params_recieved_for_testing": rss_feed}
+    try:
+
+        if etag:
+            extracted_feed =  feedparser.parse(feed_url, etag=etag)
+        elif last_updated_date:
+            extracted_feed = feedparser.parse(feed_url, last_updated_date)
+        else:
+            extracted_feed = feedparser.parse(feed_url)
+        response['feed_response_status'] = extracted_feed.status
+        
+        if extracted_feed.status == 200:
+
+            try:
+                articles = [
+                    {   
+                        "rss_feed_id": feed_pk,
+                        "date_extracted": datetime.datetime.fromtimestamp(mktime(extracted_feed.feed.updated_parsed)).isoformat(),
+                        "title": article.title,
+                        "url": article.link,
+                        "date_posted": datetime.datetime.fromtimestamp(mktime(article.published_parsed)).isoformat()
+                    }
+                        for article in extracted_feed.entries
+                    ]
+                
+                response['extracted_articles'] = articles
+            
+            except Exception as e:  
+                response['error'] = str(e)
+
+        if extracted_feed.has_key("etag"):
+            response['new_etag']= extracted_feed.etag
+        else:
+            new_etag = None 
+
+        if extracted_feed.has_key("modified_parsed"):
+            response['new_modified_parse'] = datetime.datetime.fromtimestamp(mktime(extracted_feed.modified_parsed)).isoformat()
+        else:
+            new_last_updated = None
+
+    except Exception as e:
+        response['error'] = str(e)
+
+    return response
 
 @app.get("/manually_trigger")
 async def manually_trigger_feed_ingestion():
