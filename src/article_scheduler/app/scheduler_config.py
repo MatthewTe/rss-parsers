@@ -14,8 +14,6 @@ jobstores = {
 scheduler = BackgroundScheduler(jobstores=jobstores)
 scheduler.start()
 
-# Foreign Policy Article Feed emitter runs every day:
-
 with local_sqlite_engine.connect() as conn, conn.begin():
     results = conn.execute(sa.text("SELECT * FROM rss_feeds"))
     rows = results.fetchall()

@@ -216,10 +216,20 @@ async def manually_trigger_feed_ingestion():
 
     # All RSS Feeds that need to be parsed manually need to be added here:
     scheduler.get_job(job_id="https://www.38north.org/feed/").modify(next_run_time=datetime.datetime.now())
+
     scheduler.get_job(job_id="https://foreignpolicy.com/feed/").modify(next_run_time=datetime.datetime.now())
+    
     scheduler.get_job(job_id="https://www.reutersagency.com/feed/?best-regions=asia&post_type=best").modify(next_run_time=datetime.datetime.now())
     scheduler.get_job(job_id="https://www.reutersagency.com/feed/?best-topics=political-general&post_type=best").modify(next_run_time=datetime.datetime.now())
 
+    scheduler.get_job(job_id="https://spacenews.com/feed/").modify(next_run_time=datetime.datetime.now())
+    
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/space/?outputType=xml").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/air/?outputType=xml").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/training-sim/?outputType=xml").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/global/?outputType=xml").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/industry/?outputType=xml").modify(next_run_time=datetime.datetime.now())
+    scheduler.get_job(job_id="https://www.defensenews.com/arc/outboundfeeds/rss/category/naval/?outputType=xml").modify(next_run_time=datetime.datetime.now())
 
     logger.info("Manually triggering bulk rss feed function")
  
