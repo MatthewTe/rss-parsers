@@ -47,6 +47,9 @@ def rebuild_article_cache(path_url: str):
         articles: tuple = session.execute(sa.text("SELECT url FROM article")).fetchall()
         logger.info("Queried all existing urls from the main database", extra={"number_articles": len(articles)})
 
+        # Manually adding the test google url to the cache for processing test urls:
+        articles.append(('https://www.google.com/', ))
+
     sqlite_cursor.executemany(
             'INSERT OR IGNORE INTO local_articles (url) VALUES (?)',
             articles

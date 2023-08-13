@@ -66,7 +66,7 @@ def consume_messages():
             # Manually testing the article cache check:
             try:
                 test_article_in_db: bool = determine_article_in_db(article['url'])
-                logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new. Unique check should be False", extra={
+                logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new", extra={
                     "test_article_unique_check":test_article_in_db
                 })
             except Exception as e: 
