@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 import sqlalchemy as sa
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
 import uvicorn
 import threading
 import datetime
@@ -13,7 +14,7 @@ import datetime
 import pika
 from pika.adapters.blocking_connection import BlockingChannel 
 
-# Broker logger import:
+from existing_article_caching import rebuild_article_cache, determine_article_in_db
 from broker_logger import logger
 
 app = fastapi.FastAPI()
@@ -61,8 +62,28 @@ def consume_messages():
         # Custom test logic:
         if article['rss_feed_id'] == 9999:
             print(f"Test Article Recieved: {article}\n")
-            logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new")
+               
+            # Manually testing the article cache check:
+            try:
+                test_article_in_db: bool = determine_article_in_db(article['url'])
+                logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new. Unique check should be False", extra={
+                    "test_article_unique_check":test_article_in_db
+                })
+            except Exception as e: 
+                logger.exception("""
+                        Test article recieved and re-published to exchange with routing key rss.article.new. 
+                        Unique article checking function threw Error
+                    """, 
+                    exc_info=True,
+                    extra={
+                        "determine_article_in_db_error": str(e),
+                        "test_article_unique_check":test_article_in_db
+                    }
+                )
+            
             ch.basic_publish(exchange="rss_feed", routing_key="rss.article.new", body=json.dumps(article))
+            
+            
             return
 
         engine_url = URL.create(
@@ -78,11 +99,14 @@ def consume_messages():
         Session = sessionmaker(bind=engine)
         session = Session()
         
-        article_unique_query = sa.text("SELECT id FROM article WHERE url = :url")
-        existing_article = session.execute(article_unique_query, {"url": article['url']}).fetchone()
-        
-        if existing_article is not None:
-            logger.info("Article  already exists in the database. Article removed from que", extra={
+        try:
+            article_is_in_db: bool = determine_article_in_db(article['url'])
+        except Exception as e:
+            logger.exception("Error in checking the cache or main database for existing articles. Article dropped from", exc_info=True)       
+            return 
+
+        if article_is_in_db:
+            logger.info("Article already exists in the database. Article removed from que", extra={
                 "article": article['title'],
                 "rss_feed": article['rss_feed_id']
             })
@@ -122,6 +146,17 @@ if __name__ == "__main__":
 
     consumer_thread = threading.Thread(target=consume_messages)
     consumer_thread.start()
+
+    # Background process for keeping the article cache updated:
+    scheduler =BackgroundScheduler()
+    scheduler.start()
+    scheduler.add_job(
+        func=rebuild_article_cache,
+        kwargs={"path_url":"article_cache.db.sqlite3"},
+        trigger="cron",
+        hour=6,
+        id="article_cache_scheduler"
+    )
 
     logger.info("Snowflake database connection I/O Thread started")
     uvicorn.run(app, host='0.0.0.0', port=8000)

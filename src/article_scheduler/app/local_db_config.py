@@ -26,6 +26,48 @@ rss_feeds = [
         "etag": None,
         "last_updated_date": None
     },
+    {
+        "pk":5,
+        "url":"https://spacenews.com/feed/",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":6,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/space/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":7,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/air/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":8,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/training-sim/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":9,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/global/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":10,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/industry/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
+    {
+        "pk":11,
+        "url":"https://www.defensenews.com/arc/outboundfeeds/rss/category/naval/?outputType=xml",
+        "etag": None,
+        "last_updated_date":None
+    },
 
 ]
 
