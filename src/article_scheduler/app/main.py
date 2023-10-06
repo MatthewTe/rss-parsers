@@ -128,7 +128,11 @@ async def emit_mock_rss_data():
     ]
 
     connection = pika.BlockingConnection(
-        pika.ConnectionParameters(os.environ.get("BROKER_URL", "localhost"))
+        pika.ConnectionParameters(
+            os.environ.get("BROKER_URL", "localhost"),
+            heartbeat=600,
+            blocked_connection_timeout=300
+        )
     )
     channel = connection.channel()
 
