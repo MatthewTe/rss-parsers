@@ -32,7 +32,12 @@ logger.addHandler(file_handler)
 
 def main():
     connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
+        pika.ConnectionParameters(
+            host=os.environ.get("BROKER_URL", "localhost"),
+            heartbeat=600,
+            blocked_connection_timeout=300
+        )
+    )
 
     channel = connection.channel()
     

@@ -66,7 +66,7 @@ def consume_messages():
             # Manually testing the article cache check:
             try:
                 test_article_in_db: bool = determine_article_in_db(article['url'])
-                logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new. Unique check should be False", extra={
+                logger.debug("Test article recieved and re-published to exchange with routing key rss.article.new", extra={
                     "test_article_unique_check":test_article_in_db
                 })
             except Exception as e: 
@@ -121,7 +121,12 @@ def consume_messages():
 
     try:
         connection = pika.BlockingConnection(
-            pika.ConnectionParameters(host=os.environ.get("BROKER_URL", "localhost")))
+            pika.ConnectionParameters(
+                host=os.environ.get("BROKER_URL", "localhost"),
+                heartbeat=600,
+                blocked_connection_timeout=300
+            )
+        )
 
         channel = connection.channel()
 
@@ -134,6 +139,9 @@ def consume_messages():
     
         channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=True)
         channel.start_consuming()
+    
+    except pika.exceptions.StreamLostError as e:
+        pass
 
     except Exception as e:
         logger.exception(f"Error in establishing a connection with the RabbitMQ Broker: {str(e)}", extra={
@@ -160,3 +168,18 @@ if __name__ == "__main__":
 
     logger.info("Snowflake database connection I/O Thread started")
     uvicorn.run(app, host='0.0.0.0', port=8000)
+
+
+"""
+--- Logging error ---
+Traceback (most recent call last):
+  File "/opt/venv/lib/python3.11/site-packages/python_logging_rabbitmq/handlers.py", line 165, in emit
+    self.channel.basic_publish(
+  File "/opt/venv/lib/python3.11/site-packages/pika/adapters/blocking_connection.py", line 2265, in basic_publish
+    self._flush_output()
+  File "/opt/venv/lib/python3.11/site-packages/pika/adapters/blocking_connection.py", line 1353, in _flush_output
+    self._connection._flush_output(lambda: self.is_closed, *waiters)
+  File "/opt/venv/lib/python3.11/site-packages/pika/adapters/blocking_connection.py", line 523, in _flush_output
+    raise self._closed_result.value.error
+pika.exceptions.StreamLostError: Transport indicated EOF
+"""
